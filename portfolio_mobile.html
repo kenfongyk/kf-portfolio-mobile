@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0d1117">
+    <title>KF Portfolio Mobile</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border: #30363d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-amber: #d29922;
+            --accent-blue: #58a6ff;
+            --accent-purple: #a371f7;
+            --accent-cyan: #39d4d4;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+        
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            padding: 12px 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .sync-info {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        
+        .refresh-btn {
+            background: var(--accent-blue);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        /* Summary Cards */
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            padding: 12px;
+            background: var(--bg-secondary);
+        }
+        
+        .summary-card {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .summary-card .region {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+        
+        .summary-card .value {
+            font-size: 15px;
+            font-weight: 700;
+        }
+        
+        .summary-card .pl {
+            font-size: 12px;
+            margin-top: 2px;
+        }
+        
+        .positive { color: var(--accent-green); }
+        .negative { color: var(--accent-red); }
+        
+        /* Region Filter */
+        .region-filter {
+            display: flex;
+            gap: 8px;
+            padding: 12px;
+            background: var(--bg-primary);
+            overflow-x: auto;
+            position: sticky;
+            top: 60px;
+            z-index: 99;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+        
+        .filter-btn.usa.active { background: #3b82f6; border-color: #3b82f6; }
+        .filter-btn.sg.active { background: #22c55e; border-color: #22c55e; }
+        .filter-btn.hk.active { background: #ef4444; border-color: #ef4444; }
+        
+        /* Sort Options */
+        .sort-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: var(--bg-tertiary);
+            font-size: 12px;
+        }
+        
+        .sort-bar select {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+        
+        /* Content */
+        .content {
+            padding: 12px;
+        }
+        
+        /* Stock Card - Redesigned */
+        .stock-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+        
+        .stock-card.buy-signal { border-left: 4px solid var(--accent-green); }
+        .stock-card.sell-signal { border-left: 4px solid var(--accent-red); }
+        .stock-card.hold-signal { border-left: 4px solid var(--accent-amber); }
+        
+        .stock-row1 {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        
+        .stock-info {
+            flex: 1;
+        }
+        
+        .stock-name {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-primary);
+        }
+        
+        .stock-ticker {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        
+        .stock-price-section {
+            text-align: right;
+        }
+        
+        .current-price {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .price-change {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        /* Stock Metrics Row */
+        .stock-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+        
+        .metric {
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            padding: 8px 4px;
+            text-align: center;
+        }
+        
+        .metric .label {
+            font-size: 9px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        
+        .metric .value {
+            font-size: 13px;
+            font-weight: 700;
+        }
+        
+        .metric.highlight-green { background: rgba(63, 185, 80, 0.15); }
+        .metric.highlight-red { background: rgba(248, 81, 73, 0.15); }
+        .metric.highlight-amber { background: rgba(210, 153, 34, 0.15); }
+        
+        /* Signal Badge */
+        .signal-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        .signal-badge.buy { background: var(--accent-green); color: #000; }
+        .signal-badge.sell { background: var(--accent-red); color: #fff; }
+        .signal-badge.hold { background: var(--accent-amber); color: #000; }
+        
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            z-index: 100;
+        }
+        
+        .nav-btn {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-muted);
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+        
+        .nav-btn.active {
+            color: var(--accent-blue);
+        }
+        
+        .nav-btn .icon {
+            font-size: 20px;
+            display: block;
+            margin-bottom: 2px;
+        }
+        
+        /* Watchlist specific */
+        .watchlist-card {
+            border-left: 4px solid var(--accent-cyan);
+        }
+        
+        .watchlist-card .target-info {
+            font-size: 11px;
+            color: var(--accent-cyan);
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--border);
+        }
+        
+        /* Alerts Tab */
+        .alert-item {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .alert-item.buy-alert { border-left: 4px solid var(--accent-green); }
+        .alert-item.sell-alert { border-left: 4px solid var(--accent-red); }
+        
+        .alert-type {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        
+        .alert-type.buy { background: var(--accent-green); color: #000; }
+        .alert-type.sell { background: var(--accent-red); color: #fff; }
+        
+        /* Settings */
+        .settings-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .settings-section h3 {
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .settings-input {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+        
+        .settings-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+        
+        .settings-btn.primary { background: var(--accent-blue); color: white; }
+        .settings-btn.secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+        
+        .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+        
+        /* Tab Content */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top">
+            <div>
+                <h1>📊 KF Portfolio</h1>
+                <div class="sync-info" id="syncInfo">Synced: —</div>
+            </div>
+            <button class="refresh-btn" onclick="refreshData()">🔄 Refresh</button>
+        </div>
+    </div>
+    
+    <div class="summary">
+        <div class="summary-card">
+            <div class="region">🇺🇸 USA</div>
+            <div class="value" id="usaValue">$—</div>
+            <div class="pl" id="usaPL">—</div>
+        </div>
+        <div class="summary-card">
+            <div class="region">🇸🇬 SG</div>
+            <div class="value" id="sgValue">$—</div>
+            <div class="pl" id="sgPL">—</div>
+        </div>
+        <div class="summary-card">
+            <div class="region">🇭🇰 HK</div>
+            <div class="value" id="hkValue">$—</div>
+            <div class="pl" id="hkPL">—</div>
+        </div>
+    </div>
+    
+    <!-- Tab Content -->
+    <div id="portfolioTab" class="tab-content active">
+        <div class="region-filter">
+            <button class="filter-btn active" onclick="filterRegion('all', this)">All</button>
+            <button class="filter-btn usa" onclick="filterRegion('usa', this)">🇺🇸 USA</button>
+            <button class="filter-btn sg" onclick="filterRegion('sg', this)">🇸🇬 SG</button>
+            <button class="filter-btn hk" onclick="filterRegion('hk', this)">🇭🇰 HK</button>
+        </div>
+        <div class="sort-bar">
+            <span id="stockCount">0 stocks</span>
+            <select id="sortSelect" onchange="sortStocks()">
+                <option value="name">Sort: A-Z</option>
+                <option value="chg_desc">Today: Best First</option>
+                <option value="chg_asc">Today: Worst First</option>
+                <option value="pl_desc">P/L%: Best First</option>
+                <option value="pl_asc">P/L%: Worst First</option>
+            </select>
+        </div>
+        <div class="content" id="portfolioContent">
+            <div class="loading">Loading...</div>
+        </div>
+    </div>
+    
+    <div id="watchTab" class="tab-content">
+        <div class="content" id="watchContent">
+            <div class="loading">Loading...</div>
+        </div>
+    </div>
+    
+    <div id="alertsTab" class="tab-content">
+        <div class="content" id="alertsContent">
+            <div class="empty-state">
+                <div class="icon">🔔</div>
+                <p>No alerts at the moment</p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="settingsTab" class="tab-content">
+        <div class="content">
+            <div class="settings-section">
+                <h3>📡 Data Source (GitHub Gist)</h3>
+                <input type="text" class="settings-input" id="gistUrl" placeholder="Paste your Gist Raw URL here">
+                <button class="settings-btn primary" onclick="saveSettings()">💾 Save Settings</button>
+                <button class="settings-btn secondary" onclick="testConnection()">🔗 Test Connection</button>
+            </div>
+            <div class="settings-section">
+                <h3>ℹ️ About</h3>
+                <p style="font-size:12px;color:var(--text-muted);line-height:1.6;">
+                    KF Portfolio Mobile v2.0.12<br>
+                    Sync data from your laptop app using the 📱 Mobile button.<br><br>
+                    <strong>Gist URL format:</strong><br>
+                    https://gist.githubusercontent.com/USERNAME/GIST_ID/raw/portfolio_sync.json
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <button class="nav-btn active" onclick="showTab('portfolio', this)">
+            <span class="icon">📈</span>
+            Portfolio
+        </button>
+        <button class="nav-btn" onclick="showTab('watch', this)">
+            <span class="icon">👁️</span>
+            Watch
+        </button>
+        <button class="nav-btn" onclick="showTab('alerts', this)">
+            <span class="icon">🚨</span>
+            Alerts
+        </button>
+        <button class="nav-btn" onclick="showTab('settings', this)">
+            <span class="icon">⚙️</span>
+            Settings
+        </button>
+    </div>
+    
+    <script>
+        // Default Gist URL
+        const DEFAULT_GIST_URL = 'https://gist.githubusercontent.com/kenfongyk/3b1a62c872757e1dc6ec94ec02a21cce/raw/portfolio_sync.json';
+        
+        // State
+        let portfolioData = { portfolio: [], watchlist: [], summary: {} };
+        let currentFilter = 'all';
+        let currentSort = 'name';
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initSettings();
+            refreshData();
+        });
+        
+        function initSettings() {
+            const savedUrl = localStorage.getItem('kf_gist_url');
+            if (savedUrl) {
+                document.getElementById('gistUrl').value = savedUrl;
+            } else {
+                document.getElementById('gistUrl').value = DEFAULT_GIST_URL;
+                localStorage.setItem('kf_gist_url', DEFAULT_GIST_URL);
+            }
+        }
+        
+        function saveSettings() {
+            const url = document.getElementById('gistUrl').value.trim();
+            if (!url) {
+                alert('Please enter a Gist URL');
+                return;
+            }
+            localStorage.setItem('kf_gist_url', url);
+            alert('✅ Settings saved!');
+            refreshData();
+        }
+        
+        async function testConnection() {
+            const url = document.getElementById('gistUrl').value.trim() || DEFAULT_GIST_URL;
+            try {
+                const response = await fetch(url + '?t=' + Date.now());
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.portfolio && data.portfolio.length > 0) {
+                        alert('✅ Connection successful!\n\nFound ' + data.portfolio.length + ' stocks.');
+                    } else {
+                        alert('⚠️ Connected but data is empty.\n\nSync from your laptop app first.');
+                    }
+                } else {
+                    alert('❌ Connection failed: ' + response.status);
+                }
+            } catch (e) {
+                alert('❌ Error: ' + e.message);
+            }
+        }
+        
+        async function refreshData() {
+            const url = localStorage.getItem('kf_gist_url') || DEFAULT_GIST_URL;
+            
+            try {
+                const response = await fetch(url + '?t=' + Date.now());
+                if (!response.ok) throw new Error('Failed to fetch');
+                
+                const data = await response.json();
+                
+                if (!data.portfolio || data.portfolio.length === 0) {
+                    document.getElementById('portfolioContent').innerHTML = `
+                        <div class="empty-state">
+                            <div class="icon">📭</div>
+                            <p>No data yet</p>
+                            <p style="font-size:12px;margin-top:8px;">Sync from your laptop app using the 📱 Mobile button</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                portfolioData = data;
+                
+                // Update sync info
+                if (data.exported_at) {
+                    const syncDate = new Date(data.exported_at);
+                    document.getElementById('syncInfo').textContent = 'Synced: ' + syncDate.toLocaleString();
+                }
+                
+                // Update summary
+                updateSummary();
+                
+                // Render content
+                renderPortfolio();
+                renderWatchlist();
+                renderAlerts();
+                
+            } catch (e) {
+                console.error('Refresh error:', e);
+                document.getElementById('portfolioContent').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">⚠️</div>
+                        <p>Could not load data</p>
+                        <p style="font-size:12px;margin-top:8px;">Check your Gist URL in Settings</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function updateSummary() {
+            const summary = portfolioData.summary || {};
+            
+            // USA
+            const usaMkt = summary.usa?.mkt || 0;
+            const usaPL = summary.usa?.pl || 0;
+            document.getElementById('usaValue').textContent = '$' + (usaMkt/1000).toFixed(0) + 'k';
+            document.getElementById('usaPL').textContent = (usaPL >= 0 ? '+' : '') + '$' + usaPL.toLocaleString();
+            document.getElementById('usaPL').className = 'pl ' + (usaPL >= 0 ? 'positive' : 'negative');
+            
+            // SG
+            const sgMkt = summary.sg?.mkt || 0;
+            const sgPL = summary.sg?.pl || 0;
+            document.getElementById('sgValue').textContent = '$' + (sgMkt/1000).toFixed(0) + 'k';
+            document.getElementById('sgPL').textContent = (sgPL >= 0 ? '+' : '') + '$' + sgPL.toLocaleString();
+            document.getElementById('sgPL').className = 'pl ' + (sgPL >= 0 ? 'positive' : 'negative');
+            
+            // HK
+            const hkMkt = summary.hk?.mkt || 0;
+            const hkPL = summary.hk?.pl || 0;
+            document.getElementById('hkValue').textContent = '$' + (hkMkt/1000).toFixed(0) + 'k';
+            document.getElementById('hkPL').textContent = (hkPL >= 0 ? '+' : '') + '$' + hkPL.toLocaleString();
+            document.getElementById('hkPL').className = 'pl ' + (hkPL >= 0 ? 'positive' : 'negative');
+        }
+        
+        function filterRegion(region, btn) {
+            currentFilter = region;
+            
+            // Update button states
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            renderPortfolio();
+        }
+        
+        function sortStocks() {
+            currentSort = document.getElementById('sortSelect').value;
+            renderPortfolio();
+        }
+        
+        function renderPortfolio() {
+            let stocks = portfolioData.portfolio || [];
+            
+            // Filter by region
+            if (currentFilter !== 'all') {
+                stocks = stocks.filter(s => s.region === currentFilter);
+            }
+            
+            // Sort
+            stocks = [...stocks].sort((a, b) => {
+                const aChg = a.chg_pct || 0;
+                const bChg = b.chg_pct || 0;
+                const aPL = a.cost > 0 ? ((a.price || 0) - a.cost) / a.cost * 100 : 0;
+                const bPL = b.cost > 0 ? ((b.price || 0) - b.cost) / b.cost * 100 : 0;
+                
+                switch (currentSort) {
+                    case 'chg_desc': return bChg - aChg;
+                    case 'chg_asc': return aChg - bChg;
+                    case 'pl_desc': return bPL - aPL;
+                    case 'pl_asc': return aPL - bPL;
+                    default: return (a.name || a.ticker || '').localeCompare(b.name || b.ticker || '');
+                }
+            });
+            
+            document.getElementById('stockCount').textContent = stocks.length + ' stocks';
+            
+            if (stocks.length === 0) {
+                document.getElementById('portfolioContent').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        <p>No stocks in ${currentFilter.toUpperCase()}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const html = stocks.map(s => renderStockCard(s)).join('');
+            document.getElementById('portfolioContent').innerHTML = html;
+        }
+        
+        function renderStockCard(s) {
+            const currency = s.currency === 'HKD' ? 'HK$' : s.currency === 'SGD' ? 'S$' : '$';
+            const price = s.price || s.current_price || 0;
+            const chgPct = s.chg_pct || 0;
+            const plPct = s.cost > 0 && price > 0 ? ((price - s.cost) / s.cost * 100) : 0;
+            const rsi = s.rsi || 0;
+            const bbPct = s.bb_pct || 0;
+            
+            // Determine signal
+            let signal = 'hold';
+            let signalText = '';
+            if (rsi > 0) {
+                if (rsi < 30) { signal = 'buy'; signalText = 'OVERSOLD'; }
+                else if (rsi > 70) { signal = 'sell'; signalText = 'OVERBOUGHT'; }
+            }
+            
+            // Use actual signal if available
+            if (s.signal) {
+                const sig = (s.signal.short || '').toUpperCase();
+                if (sig === 'BUY' || sig === 'STRONG BUY') { signal = 'buy'; signalText = sig; }
+                else if (sig === 'SELL') { signal = 'sell'; signalText = sig; }
+            }
+            
+            const cardClass = signal === 'buy' ? 'buy-signal' : signal === 'sell' ? 'sell-signal' : '';
+            
+            return `
+                <div class="stock-card ${cardClass}">
+                    ${signalText ? `<span class="signal-badge ${signal}">${signalText}</span>` : ''}
+                    <div class="stock-row1">
+                        <div class="stock-info">
+                            <div class="stock-name">${s.name || s.ticker}</div>
+                            <div class="stock-ticker">${s.ticker} • ${s.platform || s.region?.toUpperCase() || ''}</div>
+                        </div>
+                        <div class="stock-price-section">
+                            <div class="current-price">${currency}${price.toFixed(2)}</div>
+                            <div class="price-change ${chgPct >= 0 ? 'positive' : 'negative'}">${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(2)}%</div>
+                        </div>
+                    </div>
+                    <div class="stock-metrics">
+                        <div class="metric ${plPct >= 0 ? 'highlight-green' : 'highlight-red'}">
+                            <div class="label">P/L %</div>
+                            <div class="value ${plPct >= 0 ? 'positive' : 'negative'}">${plPct >= 0 ? '+' : ''}${plPct.toFixed(1)}%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="label">Mkt Val</div>
+                            <div class="value">${currency}${(price * s.qty / 1000).toFixed(1)}k</div>
+                        </div>
+                        <div class="metric ${rsi > 0 && rsi < 30 ? 'highlight-green' : rsi > 70 ? 'highlight-red' : ''}">
+                            <div class="label">RSI</div>
+                            <div class="value ${rsi > 0 && rsi < 30 ? 'positive' : rsi > 70 ? 'negative' : ''}">${rsi > 0 ? rsi.toFixed(0) : '—'}</div>
+                        </div>
+                        <div class="metric ${bbPct > 0 && bbPct < 20 ? 'highlight-green' : bbPct > 80 ? 'highlight-red' : ''}">
+                            <div class="label">BB%</div>
+                            <div class="value">${bbPct > 0 ? bbPct.toFixed(0) + '%' : '—'}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderWatchlist() {
+            const watchlist = portfolioData.watchlist || [];
+            
+            if (watchlist.length === 0) {
+                document.getElementById('watchContent').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">👁️</div>
+                        <p>Watchlist is empty</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const html = watchlist.map(w => {
+                const currency = w.currency === 'HKD' ? 'HK$' : w.currency === 'SGD' ? 'S$' : '$';
+                const price = w.current_price || 0;
+                const target = w.target_price || 0;
+                const diff = target > 0 && price > 0 ? ((target - price) / price * 100) : 0;
+                
+                return `
+                    <div class="stock-card watchlist-card">
+                        <div class="stock-row1">
+                            <div class="stock-info">
+                                <div class="stock-name">${w.name || w.ticker}</div>
+                                <div class="stock-ticker">${w.ticker}</div>
+                            </div>
+                            <div class="stock-price-section">
+                                <div class="current-price">${price > 0 ? currency + price.toFixed(2) : '—'}</div>
+                            </div>
+                        </div>
+                        ${target > 0 ? `
+                            <div class="target-info">
+                                🎯 Target: ${currency}${target.toFixed(2)} (${diff >= 0 ? '+' : ''}${diff.toFixed(1)}% from current)
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('watchContent').innerHTML = html;
+        }
+        
+        function renderAlerts() {
+            // Generate alerts based on RSI
+            const alerts = [];
+            
+            (portfolioData.portfolio || []).forEach(s => {
+                const rsi = s.rsi || 0;
+                if (rsi > 0 && rsi < 30) {
+                    alerts.push({ type: 'buy', ticker: s.ticker, name: s.name, reason: 'RSI ' + rsi.toFixed(0) + ' (Oversold)' });
+                } else if (rsi > 70) {
+                    alerts.push({ type: 'sell', ticker: s.ticker, name: s.name, reason: 'RSI ' + rsi.toFixed(0) + ' (Overbought)' });
+                }
+            });
+            
+            if (alerts.length === 0) {
+                document.getElementById('alertsContent').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">✅</div>
+                        <p>No alerts at the moment</p>
+                        <p style="font-size:12px;margin-top:8px;">All stocks within normal RSI range</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const html = alerts.map(a => `
+                <div class="alert-item ${a.type}-alert">
+                    <div>
+                        <div style="font-weight:700;">${a.ticker}</div>
+                        <div style="font-size:12px;color:var(--text-muted);">${a.name}</div>
+                        <div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">${a.reason}</div>
+                    </div>
+                    <span class="alert-type ${a.type}">${a.type.toUpperCase()}</span>
+                </div>
+            `).join('');
+            
+            document.getElementById('alertsContent').innerHTML = html;
+        }
+        
+        function showTab(tab, btn) {
+            // Update nav buttons
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(tab + 'Tab').classList.add('active');
+        }
+    </script>
+</body>
+</html>
